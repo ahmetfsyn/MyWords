@@ -70,6 +70,12 @@ nav button.active {
     font-weight: 500;
 }
 
+.export-import-section {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1rem;
+}
+
 main {
     flex: 1;
     padding: 1rem;
