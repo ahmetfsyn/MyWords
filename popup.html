@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MyWords</title>
+  <link rel="stylesheet" href="popup.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>MyWords</h1>
+      <nav>
+        <button id="nav-search" class="active">Search</button>
+        <button id="nav-lists">Lists</button>
+      </nav>
+    </header>
+
+    <main id="view-search" class="view active">
+      <div class="search-box">
+        <input type="text" id="word-input" placeholder="Enter a word...">
+        <button id="search-btn">Search</button>
+      </div>
+
+      <div id="result-container" class="hidden">
+        <div class="word-header">
+          <h2 id="word-title"></h2>
+          <span id="word-phonetic"></span>
+        </div>
+        <div id="word-meanings"></div>
+
+        <div class="actions">
+          <select id="list-select">
+            <option value="default">Default List</option>
+          </select>
+          <button id="add-word-btn">Add to List</button>
+        </div>
+      </div>
+
+      <div id="search-error" class="hidden"></div>
+    </main>
+
+    <main id="view-lists" class="view hidden">
+      <div class="lists-header">
+        <input type="text" id="new-list-input" placeholder="New list name...">
+        <button id="create-list-btn">+</button>
+      </div>
+      <div id="lists-container"></div>
+    </main>
+
+    <main id="view-list-detail" class="view hidden">
+      <div class="detail-header">
+        <button id="back-to-lists-btn" class="back-btn">←</button>
+        <h2 id="detail-list-name" class="detail-title"></h2>
+      </div>
+      <div id="list-words-container"></div>
+    </main>
+
+    <!-- Custom Modal -->
+    <div id="custom-modal" class="modal-overlay">
+      <div class="modal-box">
+        <div id="modal-message" class="modal-message"></div>
+        <div id="modal-actions" class="modal-actions">
+          <!-- Buttons will be injected here -->
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="utils.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
