@@ -103,14 +103,45 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // Search Logic
-    searchBtn.addEventListener('click', performSearch);
-    wordInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') performSearch();
+    // Search Logic - Live search as you type
+    let searchTimeout;
+
+    wordInput.addEventListener('input', (e) => {
+        const word = e.target.value.trim();
+
+        // Clear previous timeout
+        clearTimeout(searchTimeout);
+
+        // Hide results if input is empty
+        if (!word) {
+            resultContainer.classList.add('hidden');
+            searchError.classList.add('hidden');
+            return;
+        }
+
+        // Debounce search - wait 500ms after user stops typing
+        searchTimeout = setTimeout(() => {
+            performSearch(word);
+        }, 500);
     });
 
-    async function performSearch() {
+    // Also keep Enter key functionality
+    wordInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            clearTimeout(searchTimeout);
+            const word = e.target.value.trim();
+            if (word) performSearch(word);
+        }
+    });
+
+    // Search button still works
+    searchBtn.addEventListener('click', () => {
+        clearTimeout(searchTimeout);
         const word = wordInput.value.trim();
+        if (word) performSearch(word);
+    });
+
+    async function performSearch(word) {
         if (!word) return;
 
         searchError.classList.add('hidden');
@@ -193,6 +224,83 @@ document.addEventListener('DOMContentLoaded', async () => {
         await Utils.createList(name);
         newListInput.value = '';
         renderLists();
+    });
+
+    // Export/Import functionality
+    const exportBtn = document.getElementById('export-btn');
+    const importBtn = document.getElementById('import-btn');
+    const importFileInput = document.getElementById('import-file-input');
+
+    exportBtn.addEventListener('click', async () => {
+        const lists = await Utils.getLists();
+
+        const exportData = {
+            version: '1.0',
+            exportDate: new Date().toISOString(),
+            lists: lists
+        };
+
+        const dataStr = JSON.stringify(exportData, null, 2);
+        const dataBlob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(dataBlob);
+
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `mywords-export-${Date.now()}.json`;
+        link.click();
+
+        URL.revokeObjectURL(url);
+
+        showModal('Lists exported successfully! 📤', 'alert');
+    });
+
+    importBtn.addEventListener('click', () => {
+        importFileInput.click();
+    });
+
+    importFileInput.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        try {
+            const text = await file.text();
+            const importData = JSON.parse(text);
+
+            if (!importData.lists || !Array.isArray(importData.lists)) {
+                throw new Error('Invalid file format');
+            }
+
+            // Import lists
+            let importedCount = 0;
+            for (const list of importData.lists) {
+                let targetListId;
+
+                // Handle default list specially - add to existing default list
+                if (list.id === 'default') {
+                    targetListId = 'default';
+                } else {
+                    // Create new list with new ID to avoid conflicts
+                    const newList = await Utils.createList(list.name);
+                    targetListId = newList.id;
+                }
+
+                // Add words to the list
+                for (const word of list.words) {
+                    await Utils.addWordToList(targetListId, word);
+                }
+                importedCount++;
+            }
+
+            renderLists();
+            showModal(`Successfully imported ${importedCount} list(s)! 📥`, 'alert');
+
+        } catch (error) {
+            console.error('Import error:', error);
+            showModal('Failed to import file. Please check the file format.', 'alert');
+        }
+
+        // Reset file input
+        importFileInput.value = '';
     });
 
     async function renderLists() {
